@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Silicon Hills LLC <info@siliconhills.dev>
  * -----
- * Last Modified: 18-07-2021 00:10:52
+ * Last Modified: 18-07-2021 00:17:42
  * Modified By: Silicon Hills LLC <info@siliconhills.dev>
  * -----
  * Silicon Hills LLC (c) Copyright 2021
@@ -27,6 +27,7 @@ import { GlobalLogConfig } from 'axios-logger/lib/common/types';
 import { HttpService } from '@nestjs/axios';
 import {
   DynamicModule,
+  Global,
   Inject,
   Logger,
   Module,
@@ -42,7 +43,17 @@ import {
 // force idempotence (like c/c++ `#pragma once`) if module loaded more than once
 let registeredAxiosInterceptors = false;
 
-@Module({})
+@Global()
+@Module({
+  exports: [AXIOS_LOGGER_OPTIONS],
+  imports: AxiosLoggerModule.imports,
+  providers: [
+    {
+      provide: AXIOS_LOGGER_OPTIONS,
+      useValue: {}
+    }
+  ]
+})
 export class AxiosLoggerModule implements OnModuleInit {
   private static readonly imports = [];
 
@@ -65,16 +76,16 @@ export class AxiosLoggerModule implements OnModuleInit {
 
   public static register(options: AxiosLoggerOptions): DynamicModule {
     return {
-      module: AxiosLoggerModule,
+      exports: [AXIOS_LOGGER_OPTIONS],
       global: true,
       imports: AxiosLoggerModule.imports,
+      module: AxiosLoggerModule,
       providers: [
         {
           provide: AXIOS_LOGGER_OPTIONS,
           useValue: options
         }
-      ],
-      exports: [AXIOS_LOGGER_OPTIONS]
+      ]
     };
   }
 
@@ -82,11 +93,11 @@ export class AxiosLoggerModule implements OnModuleInit {
     asyncOptions: AxiosLoggerAsyncOptions
   ): DynamicModule {
     return {
-      module: AxiosLoggerModule,
+      exports: [AXIOS_LOGGER_OPTIONS],
       global: true,
       imports: [...AxiosLoggerModule.imports, ...(asyncOptions.imports || [])],
-      providers: [AxiosLoggerModule.createOptionsProvider(asyncOptions)],
-      exports: [AXIOS_LOGGER_OPTIONS]
+      module: AxiosLoggerModule,
+      providers: [AxiosLoggerModule.createOptionsProvider(asyncOptions)]
     };
   }
 
