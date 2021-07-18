@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Silicon Hills LLC <info@siliconhills.dev>
  * -----
- * Last Modified: 18-07-2021 00:17:42
+ * Last Modified: 18-07-2021 00:24:06
  * Modified By: Silicon Hills LLC <info@siliconhills.dev>
  * -----
  * Silicon Hills LLC (c) Copyright 2021
@@ -43,10 +43,12 @@ import {
 // force idempotence (like c/c++ `#pragma once`) if module loaded more than once
 let registeredAxiosInterceptors = false;
 
+const imports = [];
+
 @Global()
 @Module({
   exports: [AXIOS_LOGGER_OPTIONS],
-  imports: AxiosLoggerModule.imports,
+  imports,
   providers: [
     {
       provide: AXIOS_LOGGER_OPTIONS,
@@ -55,8 +57,6 @@ let registeredAxiosInterceptors = false;
   ]
 })
 export class AxiosLoggerModule implements OnModuleInit {
-  private static readonly imports = [];
-
   private options: AxiosLoggerOptions;
 
   constructor(@Inject(AXIOS_LOGGER_OPTIONS) options: AxiosLoggerOptions) {
@@ -78,7 +78,7 @@ export class AxiosLoggerModule implements OnModuleInit {
     return {
       exports: [AXIOS_LOGGER_OPTIONS],
       global: true,
-      imports: AxiosLoggerModule.imports,
+      imports,
       module: AxiosLoggerModule,
       providers: [
         {
@@ -95,7 +95,7 @@ export class AxiosLoggerModule implements OnModuleInit {
     return {
       exports: [AXIOS_LOGGER_OPTIONS],
       global: true,
-      imports: [...AxiosLoggerModule.imports, ...(asyncOptions.imports || [])],
+      imports: [...imports, ...(asyncOptions.imports || [])],
       module: AxiosLoggerModule,
       providers: [AxiosLoggerModule.createOptionsProvider(asyncOptions)]
     };
