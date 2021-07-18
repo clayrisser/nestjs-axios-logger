@@ -1,0 +1,7 @@
+describe('nestjs-axios-logger', () => {
+  it('should work', async () => {
+    expect(true).toBe(true);
+  });
+});
+
+export default null;
