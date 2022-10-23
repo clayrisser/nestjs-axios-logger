@@ -1,6 +1,6 @@
 {
   "name": "nestjs-axios-logger",
-  "version": "0.0.9",
+  "version": "0.1.2",
   "description": "nestjs axios http module logging",
   "sideEffects": false,
   "keywords": [
@@ -38,15 +38,17 @@
     ".": {
       "import": "./esm/index.js",
       "require": "./lib/index.js"
+    },
+    "./axiosInherit": {
+      "import": "./esm/axiosInherit.js",
+      "require": "./lib/axiosInherit.js"
     }
   },
   "license": "Apache-2.0",
   "files": [
     "esm",
     "lib",
-    "src",
-    "axiosInherit.js",
-    "axiosInherit.d.ts"
+    "src"
   ],
   "repository": {
     "type": "git",
@@ -72,7 +74,8 @@
   "dependencies": {
     "@babel/runtime": "^7.19.4",
     "axios-logger": "^2.6.1",
-    "core-js": "^3.25.5"
+    "core-js": "^3.25.5",
+    "http-status": "^1.5.3"
   },
   "peerDependencies": {
     "@nestjs/axios": "^0.0.4",

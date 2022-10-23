@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:36:56
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 23-10-2022 05:12:34
+ * Last Modified: 23-10-2022 10:19:42
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -22,22 +22,21 @@
  * limitations under the License.
  */
 
-import { AxiosError } from 'axios';
+import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { LogLevel } from '@nestjs/common';
 import { ModuleMetadata } from '@nestjs/common/interfaces';
 
 export interface AxiosLoggerOptions {
   data?: boolean;
-  error?: (err: AxiosError<any> | string) => AxiosError<any> | string;
+  error?: (err: AxiosError | string, options: AxiosLoggerOptions) => AxiosError | string;
   errorLogLevel?: LogLevel;
   headers?: boolean;
   method?: boolean;
-  request?: (message: string) => string;
+  request?: (response: AxiosRequestConfig, options: AxiosLoggerOptions) => string;
   requestLogLevel?: LogLevel;
-  response?: (message: string) => string;
+  response?: (response: AxiosResponse, options: AxiosLoggerOptions) => string;
   responseLogLevel?: LogLevel;
   status?: boolean;
-  statusText?: boolean;
   url?: boolean;
 }
 

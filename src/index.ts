@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 23-10-2022 06:43:48
+ * Last Modified: 23-10-2022 15:15:40
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -23,10 +23,9 @@
  */
 
 import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
+import httpStatus from 'http-status';
 import { DynamicModule, ForwardReference, Global, Inject, Logger, Module, OnModuleInit, Type } from '@nestjs/common';
-import { GlobalLogConfig } from 'axios-logger/lib/common/types';
 import { HttpService } from '@nestjs/axios';
-import { errorLogger, requestLogger, responseLogger } from 'axios-logger';
 import { AXIOS_LOGGER_OPTIONS, AxiosLoggerAsyncOptions, AxiosLoggerOptions } from './types';
 
 // force idempotence (like c/c++ `#pragma once`) if module loaded more than once
@@ -93,7 +92,6 @@ export class AxiosLoggerModule implements OnModuleInit {
       requestLogLevel: 'verbose',
       responseLogLevel: 'verbose',
       status: true,
-      statusText: true,
       url: true,
       ...options,
     };
@@ -102,55 +100,71 @@ export class AxiosLoggerModule implements OnModuleInit {
   onModuleInit() {
     if (!registeredAxiosInterceptors) {
       const logger = new Logger(HttpService.name);
-      const config: GlobalLogConfig = {
-        data: this.options.data,
-        dateFormat: false,
-        headers: this.options.headers,
-        method: this.options.method,
-        prefixText: false,
-        status: this.options.status,
-        statusText: this.options.statusText,
-        url: this.options.url,
-      };
-      const requestConfig: GlobalLogConfig = {
-        ...config,
-        logger: (message: string) => {
-          let newMessage: string | undefined;
-          if (typeof this.options.request === 'function') {
-            newMessage = this.options.request(message);
-          }
-          logger[this.options.requestLogLevel || 'verbose'](newMessage || message);
-        },
-      };
-      const responseConfig: GlobalLogConfig = {
-        ...config,
-        logger: (message: string) => {
-          let newMessage: string | undefined;
-          if (typeof this.options.response === 'function') {
-            newMessage = this.options.response(message);
-          }
-          logger[this.options.responseLogLevel || 'verbose'](newMessage || message);
-        },
-      };
-      const errorConfig: GlobalLogConfig = {
-        ...config,
-        logger: (message: AxiosError<any> | string) => {
-          let newMessage: string | Error | undefined;
-          if (typeof this.options.error === 'function') {
-            newMessage = this.options.error(message);
-          }
-          logger[this.options.errorLogLevel || 'error'](newMessage || message);
-        },
-      };
       axios.interceptors.request.use(
-        (request: AxiosRequestConfig) => requestLogger(request, requestConfig),
-        (error: AxiosError<any>) => errorLogger(error, errorConfig),
+        (request: AxiosRequestConfig) => requestLogger(request, this.options, logger),
+        (error: AxiosError<any>) => errorLogger(error, this.options, logger),
       );
       axios.interceptors.response.use(
-        (response: AxiosResponse) => responseLogger(response, responseConfig),
-        (error: AxiosError<any>) => errorLogger(error, errorConfig),
+        (response: AxiosResponse) => responseLogger(response, this.options, logger),
+        (error: AxiosError<any>) => errorLogger(error, this.options, logger),
       );
       registeredAxiosInterceptors = true;
     }
   }
+}
+
+function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions, logger: Logger) {
+  let message = `[Request]${options.method ? ` ${request.method}` : ''}${options.url ? ` ${request.url}` : ''}`;
+  if (typeof options.request === 'function') {
+    message = options.request(request, options);
+  }
+  logger[options.requestLogLevel as 'log'](
+    {
+      ...(options.data ? { data: request.data } : {}),
+      ...(options.headers ? { headers: request.headers } : {}),
+      ...(options.method ? { method: request.method } : {}),
+      ...(options.url ? { url: request.url } : {}),
+    },
+    message,
+  );
+  return request;
+}
+
+function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, logger: Logger) {
+  const statusName = httpStatus[`${response.status}_NAME}`];
+  let message = `[Response]${options.method ? ` ${response.request.method}` : ''}${
+    options.url ? ` ${response.request.url}` : ''
+  }${options.status ? ` ${response.status}` : ''}${statusName ? ` ${statusName}` : ''}`;
+  if (typeof options.response === 'function') {
+    message = options.response(response, options);
+  }
+  logger[options.responseLogLevel as 'verbose'](
+    {
+      ...(options.data ? { data: response.data } : {}),
+      ...(options.headers ? { headers: response.headers } : {}),
+      ...(options.method ? { method: response.request.method } : {}),
+      ...(options.status ? { status: response.status } : {}),
+      ...(options.url ? { url: response.request.url } : {}),
+    },
+    message,
+  );
+  return response;
+}
+
+function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logger: Logger) {
+  let errOrStr = err;
+  if (options.error) {
+    errOrStr = options.error(errOrStr, options);
+  }
+  const error = typeof errOrStr === 'object' ? errOrStr : new AxiosError(errOrStr);
+  logger[options.errorLogLevel as 'error'](
+    {
+      ...(options.data ? { data: error?.response?.data } : {}),
+      ...(options.headers ? { headers: error?.response?.headers } : {}),
+      ...(options.method ? { method: error?.request?.method } : {}),
+      ...(options.status ? { status: error?.response?.status } : {}),
+    },
+    error,
+  );
+  return err;
 }
