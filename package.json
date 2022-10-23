@@ -1,6 +1,6 @@
 {
   "name": "nestjs-axios-logger",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "nestjs axios http module logging",
   "sideEffects": false,
   "keywords": [
@@ -97,6 +97,7 @@
     "axios": "~0.27.2",
     "babel-plugin-macros": "^3.1.0",
     "babel-plugin-module-resolver": "^4.1.0",
+    "babel-plugin-transform-object-hasown": "^1.1.0",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "cspell": "^6.12.0",
     "eslint": "^8.26.0",

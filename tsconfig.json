@@ -24,7 +24,7 @@
       "~/*": ["./src/*"],
       "~tests/*": ["./tests/*"]
     },
-    "lib": ["DOM", "DOM.Iterable", "ES2021", "ScriptHost", "WebWorker", "WebWorker.ImportScripts", "Webworker.Iterable"]
+    "lib": ["DOM", "DOM.Iterable", "ES2022", "ScriptHost", "WebWorker", "WebWorker.ImportScripts", "Webworker.Iterable"]
   },
   "include": ["src", ".eslintrc.js", "tests"]
 }

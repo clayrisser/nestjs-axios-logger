@@ -5,6 +5,7 @@
     "cspell",
     "ecma",
     "globals",
+    "hasown",
     "idempotence",
     "jsx",
     "lang",

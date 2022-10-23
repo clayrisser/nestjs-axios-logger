@@ -16,10 +16,8 @@
     "babel-plugin-macros",
     "babel-plugin-transform-typescript-metadata",
     "@babel/plugin-transform-runtime",
-    [
-      "@babel/plugin-proposal-decorators",
-      { "version": "legacy", "loose": false }
-    ],
+    "babel-plugin-transform-object-hasown",
+    ["@babel/plugin-proposal-decorators", { "version": "legacy", "loose": false }],
     ["@babel/plugin-proposal-class-properties", { "loose": false }],
     [
       "babel-plugin-module-resolver",
