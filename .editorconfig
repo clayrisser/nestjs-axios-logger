@@ -17,7 +17,8 @@ trim_trailing_whitespace = false
 [{M,m}akefile{,.*}]
 charset = utf-8
 indent_style = tab
-
+indent_size = 4
 [*.mk]
 charset = utf-8
 indent_style = tab
+indent_size = 4

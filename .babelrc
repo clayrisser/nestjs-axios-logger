@@ -4,11 +4,10 @@
       "@babel/preset-env",
       {
         "corejs": 3,
+        "loose": false,
+        "modules": "cjs",
         "spec": true,
-        "useBuiltIns": "usage",
-        "targets": {
-          "node": "6"
-        }
+        "useBuiltIns": "usage"
       }
     ],
     "@babel/preset-typescript"
@@ -16,16 +15,18 @@
   "plugins": [
     "babel-plugin-macros",
     "babel-plugin-transform-typescript-metadata",
-    ["@babel/plugin-proposal-decorators", { "legacy": true }],
-    ["@babel/plugin-proposal-class-properties", { "loose": true }],
-    ["@babel/plugin-proposal-private-methods", { "loose": true }],
-    "@babel/plugin-proposal-optional-chaining",
     "@babel/plugin-transform-runtime",
+    [
+      "@babel/plugin-proposal-decorators",
+      { "version": "legacy", "loose": false }
+    ],
+    ["@babel/plugin-proposal-class-properties", { "loose": false }],
     [
       "babel-plugin-module-resolver",
       {
         "root": ["./"],
         "alias": {
+          "~": "./src",
           "~tests": "./tests"
         }
       }
@@ -39,12 +40,10 @@
           "@babel/preset-env",
           {
             "corejs": 3,
+            "loose": false,
             "modules": false,
             "spec": true,
-            "useBuiltIns": "usage",
-            "targets": {
-              "node": "6"
-            }
+            "useBuiltIns": "usage"
           }
         ]
       ],
@@ -68,12 +67,10 @@
           "@babel/preset-env",
           {
             "corejs": 3,
+            "loose": false,
             "modules": "umd",
             "spec": true,
-            "useBuiltIns": "usage",
-            "targets": {
-              "node": "6"
-            }
+            "useBuiltIns": "usage"
           }
         ]
       ],

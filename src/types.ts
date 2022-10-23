@@ -2,12 +2,12 @@
  * File: /src/types.ts
  * Project: nestjs-axios-logger
  * File Created: 17-07-2021 22:36:56
- * Author: Silicon Hills LLC <info@siliconhills.dev>
+ * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 18-07-2021 00:07:17
- * Modified By: Silicon Hills LLC <info@siliconhills.dev>
+ * Last Modified: 23-10-2022 05:12:34
+ * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Silicon Hills LLC (c) Copyright 2021
+ * Risser Labs LLC (c) Copyright 2021
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,12 +41,9 @@ export interface AxiosLoggerOptions {
   url?: boolean;
 }
 
-export interface AxiosLoggerAsyncOptions
-  extends Pick<ModuleMetadata, 'imports'> {
+export interface AxiosLoggerAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
   inject?: any[];
-  useFactory?: (
-    ...args: any[]
-  ) => Promise<AxiosLoggerOptions> | AxiosLoggerOptions;
+  useFactory?: (...args: any[]) => Promise<AxiosLoggerOptions> | AxiosLoggerOptions;
 }
 
 export const AXIOS_LOGGER_OPTIONS = 'AXIOS_LOGGER_OPTIONS';

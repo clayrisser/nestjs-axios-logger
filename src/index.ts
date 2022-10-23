@@ -2,12 +2,12 @@
  * File: /src/index.ts
  * Project: nestjs-axios-logger
  * File Created: 17-07-2021 22:16:57
- * Author: Silicon Hills LLC <info@siliconhills.dev>
+ * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 18-07-2021 00:24:06
- * Modified By: Silicon Hills LLC <info@siliconhills.dev>
+ * Last Modified: 23-10-2022 05:35:13
+ * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Silicon Hills LLC (c) Copyright 2021
+ * Risser Labs LLC (c) Copyright 2021
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,25 +25,14 @@
 import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
 import { GlobalLogConfig } from 'axios-logger/lib/common/types';
 import { HttpService } from '@nestjs/axios';
-import {
-  DynamicModule,
-  Global,
-  Inject,
-  Logger,
-  Module,
-  OnModuleInit
-} from '@nestjs/common';
+import { DynamicModule, ForwardReference, Global, Inject, Logger, Module, OnModuleInit, Type } from '@nestjs/common';
 import { errorLogger, requestLogger, responseLogger } from 'axios-logger';
-import {
-  AXIOS_LOGGER_OPTIONS,
-  AxiosLoggerAsyncOptions,
-  AxiosLoggerOptions
-} from './types';
+import { AXIOS_LOGGER_OPTIONS, AxiosLoggerAsyncOptions, AxiosLoggerOptions } from './types';
 
 // force idempotence (like c/c++ `#pragma once`) if module loaded more than once
 let registeredAxiosInterceptors = false;
 
-const imports = [];
+const imports: Array<Type<any> | DynamicModule | Promise<DynamicModule> | ForwardReference> = [];
 
 @Global()
 @Module({
@@ -52,11 +41,47 @@ const imports = [];
   providers: [
     {
       provide: AXIOS_LOGGER_OPTIONS,
-      useValue: {}
-    }
-  ]
+      useValue: {},
+    },
+  ],
 })
 export class AxiosLoggerModule implements OnModuleInit {
+  public static register(options: AxiosLoggerOptions): DynamicModule {
+    return {
+      exports: [AXIOS_LOGGER_OPTIONS],
+      global: true,
+      imports,
+      module: AxiosLoggerModule,
+      providers: [
+        {
+          provide: AXIOS_LOGGER_OPTIONS,
+          useValue: options,
+        },
+      ],
+    };
+  }
+
+  public static registerAsync(asyncOptions: AxiosLoggerAsyncOptions): DynamicModule {
+    return {
+      exports: [AXIOS_LOGGER_OPTIONS],
+      global: true,
+      imports: [...imports, ...(asyncOptions.imports || [])],
+      module: AxiosLoggerModule,
+      providers: [AxiosLoggerModule.createOptionsProvider(asyncOptions)],
+    };
+  }
+
+  private static createOptionsProvider(asyncOptions: AxiosLoggerAsyncOptions) {
+    if (!asyncOptions.useFactory) {
+      throw new Error("registerAsync must have 'useFactory'");
+    }
+    return {
+      inject: asyncOptions.inject || [],
+      provide: AXIOS_LOGGER_OPTIONS,
+      useFactory: asyncOptions.useFactory,
+    };
+  }
+
   private options: AxiosLoggerOptions;
 
   constructor(@Inject(AXIOS_LOGGER_OPTIONS) options: AxiosLoggerOptions) {
@@ -70,45 +95,7 @@ export class AxiosLoggerModule implements OnModuleInit {
       status: true,
       statusText: true,
       url: true,
-      ...options
-    };
-  }
-
-  public static register(options: AxiosLoggerOptions): DynamicModule {
-    return {
-      exports: [AXIOS_LOGGER_OPTIONS],
-      global: true,
-      imports,
-      module: AxiosLoggerModule,
-      providers: [
-        {
-          provide: AXIOS_LOGGER_OPTIONS,
-          useValue: options
-        }
-      ]
-    };
-  }
-
-  public static registerAsync(
-    asyncOptions: AxiosLoggerAsyncOptions
-  ): DynamicModule {
-    return {
-      exports: [AXIOS_LOGGER_OPTIONS],
-      global: true,
-      imports: [...imports, ...(asyncOptions.imports || [])],
-      module: AxiosLoggerModule,
-      providers: [AxiosLoggerModule.createOptionsProvider(asyncOptions)]
-    };
-  }
-
-  private static createOptionsProvider(asyncOptions: AxiosLoggerAsyncOptions) {
-    if (!asyncOptions.useFactory) {
-      throw new Error("registerAsync must have 'useFactory'");
-    }
-    return {
-      inject: asyncOptions.inject || [],
-      provide: AXIOS_LOGGER_OPTIONS,
-      useFactory: asyncOptions.useFactory
+      ...options,
     };
   }
 
@@ -123,45 +110,45 @@ export class AxiosLoggerModule implements OnModuleInit {
         prefixText: false,
         status: this.options.status,
         statusText: this.options.statusText,
-        url: this.options.url
+        url: this.options.url,
       };
       const requestConfig: GlobalLogConfig = {
         ...config,
         logger: (message: string) => {
+          let newMessage: string | undefined;
           if (typeof this.options.request === 'function') {
-            const newMessage = this.options.request(message);
-            if (newMessage) message = newMessage;
+            newMessage = this.options.request(message);
           }
-          logger[this.options.requestLogLevel || 'verbose'](message);
-        }
+          logger[this.options.requestLogLevel || 'verbose'](newMessage || message);
+        },
       };
       const responseConfig: GlobalLogConfig = {
         ...config,
         logger: (message: string) => {
+          let newMessage: string | undefined;
           if (typeof this.options.response === 'function') {
-            const newMessage = this.options.response(message);
-            if (newMessage) message = newMessage;
+            newMessage = this.options.response(message);
           }
-          logger[this.options.responseLogLevel || 'verbose'](message);
-        }
+          logger[this.options.responseLogLevel || 'verbose'](newMessage || message);
+        },
       };
       const errorConfig: GlobalLogConfig = {
         ...config,
         logger: (message: AxiosError<any> | string) => {
+          let newMessage: string | Error | undefined;
           if (typeof this.options.error === 'function') {
-            const newMessage = this.options.error(message);
-            if (newMessage) message = newMessage;
+            newMessage = this.options.error(message);
           }
-          logger[this.options.errorLogLevel || 'error'](message);
-        }
+          logger[this.options.errorLogLevel || 'error'](newMessage || message);
+        },
       };
       axios.interceptors.request.use(
         (request: AxiosRequestConfig) => requestLogger(request, requestConfig),
-        (error: AxiosError<any>) => errorLogger(error, errorConfig)
+        (error: AxiosError<any>) => errorLogger(error, errorConfig),
       );
       axios.interceptors.response.use(
         (response: AxiosResponse) => responseLogger(response, responseConfig),
-        (error: AxiosError<any>) => errorLogger(error, errorConfig)
+        (error: AxiosError<any>) => errorLogger(error, errorConfig),
       );
       registeredAxiosInterceptors = true;
     }
