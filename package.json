@@ -1,6 +1,6 @@
 {
   "name": "nestjs-axios-logger",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "description": "nestjs axios http module logging",
   "sideEffects": false,
   "keywords": [
@@ -44,7 +44,9 @@
   "files": [
     "esm",
     "lib",
-    "src"
+    "src",
+    "axiosInherit.js",
+    "axiosInherit.d.ts"
   ],
   "repository": {
     "type": "git",
