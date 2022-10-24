@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 24-10-2022 05:49:13
+ * Last Modified: 24-10-2022 06:18:04
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -88,6 +88,7 @@ export class AxiosLoggerModule implements OnModuleInit {
       data: true,
       errorLogLevel: 'error',
       headers: true,
+      kind: true,
       method: true,
       requestLogLevel: 'verbose',
       responseLogLevel: 'verbose',
@@ -125,6 +126,7 @@ function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions,
     {
       ...(options.data ? { data: request.data } : {}),
       ...(options.headers ? { headers: formatHeaders(request.headers, options.secretMask) } : {}),
+      ...(options.kind ? { kind: 'request' } : {}),
       ...(options.method ? { method: request.method?.toUpperCase() } : {}),
       ...(options.url ? { url: request.url } : {}),
     },
@@ -146,6 +148,7 @@ function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, lo
     {
       ...(options.data ? { data: response.data } : {}),
       ...(options.headers ? { headers: formatHeaders(response.headers, options.secretMask) } : {}),
+      ...(options.kind ? { kind: 'response' } : {}),
       ...(options.method ? { method: response.request?.method?.toUpperCase() } : {}),
       ...(options.status ? { status: response.status } : {}),
       ...(options.url && url ? { url } : {}),
@@ -166,6 +169,7 @@ function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logg
     {
       ...(options.data ? { data: error?.response?.data } : {}),
       ...(options.headers ? { headers: formatHeaders(error?.response?.headers, options.secretMask) } : {}),
+      ...(options.kind ? { kind: 'error' } : {}),
       ...(options.method ? { method: error?.request?.method?.toUpperCase() } : {}),
       ...(options.status ? { status: error?.response?.status } : {}),
       ...(options.url && url ? { url } : {}),

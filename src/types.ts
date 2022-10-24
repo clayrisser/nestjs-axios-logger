@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:36:56
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 24-10-2022 05:43:33
+ * Last Modified: 24-10-2022 06:15:30
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -31,6 +31,7 @@ export interface AxiosLoggerOptions {
   error?: (err: AxiosError | string, options: AxiosLoggerOptions) => AxiosError | string;
   errorLogLevel?: LogLevel;
   headers?: boolean;
+  kind?: boolean;
   method?: boolean;
   request?: (response: AxiosRequestConfig, options: AxiosLoggerOptions) => string;
   requestLogLevel?: LogLevel;

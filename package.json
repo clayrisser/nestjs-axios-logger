@@ -1,6 +1,6 @@
 {
   "name": "nestjs-axios-logger",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "nestjs axios http module logging",
   "sideEffects": false,
   "keywords": [
