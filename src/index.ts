@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 24-10-2022 05:44:21
+ * Last Modified: 24-10-2022 05:49:13
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -175,8 +175,8 @@ function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logg
   return err;
 }
 
-function formatHeaders(headers: any, secretMask: string | boolean = false): Record<string, string> {
-  return Object.entries(headers).reduce((headers: Record<string, string>, [key, value]: [string, any]) => {
+function formatHeaders(headers: any, secretMask: string | boolean = false): Record<string, string> | undefined {
+  headers = Object.entries(headers).reduce((headers: Record<string, string>, [key, value]: [string, any]) => {
     if (!validHeader(key, value)) return headers;
     if (typeof value === 'object') {
       headers = {
@@ -194,6 +194,8 @@ function formatHeaders(headers: any, secretMask: string | boolean = false): Reco
     }
     return headers;
   }, {});
+  if (Object.keys(headers).length) return headers;
+  return undefined;
 }
 
 function validHeader(key: any, value: any) {
