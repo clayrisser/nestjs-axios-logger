@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 24-10-2022 05:11:12
+ * Last Modified: 24-10-2022 05:44:21
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -91,6 +91,7 @@ export class AxiosLoggerModule implements OnModuleInit {
       method: true,
       requestLogLevel: 'verbose',
       responseLogLevel: 'verbose',
+      secretMask: true,
       status: true,
       url: true,
       ...options,
@@ -123,7 +124,7 @@ function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions,
   logger[options.requestLogLevel as 'log'](
     {
       ...(options.data ? { data: request.data } : {}),
-      ...(options.headers ? { headers: formatHeaders(request.headers) } : {}),
+      ...(options.headers ? { headers: formatHeaders(request.headers, options.secretMask) } : {}),
       ...(options.method ? { method: request.method?.toUpperCase() } : {}),
       ...(options.url ? { url: request.url } : {}),
     },
@@ -144,8 +145,8 @@ function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, lo
   logger[options.responseLogLevel as 'verbose'](
     {
       ...(options.data ? { data: response.data } : {}),
-      ...(options.headers ? { headers: formatHeaders(response.headers) } : {}),
-      ...(options.method ? { method: response.request.method } : {}),
+      ...(options.headers ? { headers: formatHeaders(response.headers, options.secretMask) } : {}),
+      ...(options.method ? { method: response.request?.method?.toUpperCase() } : {}),
       ...(options.status ? { status: response.status } : {}),
       ...(options.url && url ? { url } : {}),
     },
@@ -164,8 +165,8 @@ function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logg
   logger[options.errorLogLevel as 'error'](
     {
       ...(options.data ? { data: error?.response?.data } : {}),
-      ...(options.headers ? { headers: formatHeaders(error?.response?.headers) } : {}),
-      ...(options.method ? { method: error?.request?.method } : {}),
+      ...(options.headers ? { headers: formatHeaders(error?.response?.headers, options.secretMask) } : {}),
+      ...(options.method ? { method: error?.request?.method?.toUpperCase() } : {}),
       ...(options.status ? { status: error?.response?.status } : {}),
       ...(options.url && url ? { url } : {}),
     },
@@ -174,14 +175,42 @@ function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logg
   return err;
 }
 
-function formatHeaders(headers: any): Record<string, string> {
+function formatHeaders(headers: any, secretMask: string | boolean = false): Record<string, string> {
   return Object.entries(headers).reduce((headers: Record<string, string>, [key, value]: [string, any]) => {
-    if (!value) return headers;
+    if (!validHeader(key, value)) return headers;
     if (typeof value === 'object') {
-      headers = { ...headers, ...value };
+      headers = {
+        ...headers,
+        ...Object.entries(value).reduce((headers: Record<string, string>, [key, value]: [string, any]) => {
+          if (!validHeader(key, value)) return headers;
+          [key, value] = formatHeader(key, value, secretMask);
+          headers[key] = value;
+          return headers;
+        }, {}),
+      };
     } else {
-      headers[key] = value.toString();
+      [key, value] = formatHeader(key, value, secretMask);
+      headers[key] = value;
     }
     return headers;
   }, {});
+}
+
+function validHeader(key: any, value: any) {
+  return typeof value === 'string' && typeof key === 'string' && value && key && Number.isNaN(parseInt(key[0], 10));
+}
+
+function formatHeader(key: string, value: string, secretMask: string | boolean = false): [string, string] {
+  key = key.replace(/(^|[\s_-])\S/g, (s) => s.toUpperCase());
+  if (!secretMask) return [key, value];
+  if (typeof secretMask === 'boolean') secretMask = '*****';
+  if (key === 'Authorization') {
+    const valueArr = value.split(/ +/g);
+    if (valueArr.length <= 1) {
+      value = secretMask;
+    } else if (valueArr.length === 2) {
+      value = valueArr[0] + ' ' + secretMask;
+    }
+  }
+  return [key, value];
 }
