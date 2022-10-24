@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 24-10-2022 06:18:04
+ * Last Modified: 24-10-2022 06:32:03
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -126,7 +126,7 @@ function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions,
     {
       ...(options.data ? { data: request.data } : {}),
       ...(options.headers ? { headers: formatHeaders(request.headers, options.secretMask) } : {}),
-      ...(options.kind ? { kind: 'request' } : {}),
+      ...(options.kind ? { kind: 'HTTP_REQUEST' } : {}),
       ...(options.method ? { method: request.method?.toUpperCase() } : {}),
       ...(options.url ? { url: request.url } : {}),
     },
@@ -148,7 +148,7 @@ function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, lo
     {
       ...(options.data ? { data: response.data } : {}),
       ...(options.headers ? { headers: formatHeaders(response.headers, options.secretMask) } : {}),
-      ...(options.kind ? { kind: 'response' } : {}),
+      ...(options.kind ? { kind: 'HTTP_RESPONSE' } : {}),
       ...(options.method ? { method: response.request?.method?.toUpperCase() } : {}),
       ...(options.status ? { status: response.status } : {}),
       ...(options.url && url ? { url } : {}),
@@ -169,7 +169,7 @@ function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logg
     {
       ...(options.data ? { data: error?.response?.data } : {}),
       ...(options.headers ? { headers: formatHeaders(error?.response?.headers, options.secretMask) } : {}),
-      ...(options.kind ? { kind: 'error' } : {}),
+      ...(options.kind ? { kind: 'HTTP_ERROR' } : {}),
       ...(options.method ? { method: error?.request?.method?.toUpperCase() } : {}),
       ...(options.status ? { status: error?.response?.status } : {}),
       ...(options.url && url ? { url } : {}),
