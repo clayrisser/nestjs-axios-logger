@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 23-10-2022 15:15:40
+ * Last Modified: 24-10-2022 05:11:12
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -114,15 +114,17 @@ export class AxiosLoggerModule implements OnModuleInit {
 }
 
 function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions, logger: Logger) {
-  let message = `[Request]${options.method ? ` ${request.method}` : ''}${options.url ? ` ${request.url}` : ''}`;
+  let message = `[Request]${options.method ? ` ${request.method?.toUpperCase()}` : ''}${
+    options.url ? ` ${request.url}` : ''
+  }`;
   if (typeof options.request === 'function') {
     message = options.request(request, options);
   }
   logger[options.requestLogLevel as 'log'](
     {
       ...(options.data ? { data: request.data } : {}),
-      ...(options.headers ? { headers: request.headers } : {}),
-      ...(options.method ? { method: request.method } : {}),
+      ...(options.headers ? { headers: formatHeaders(request.headers) } : {}),
+      ...(options.method ? { method: request.method?.toUpperCase() } : {}),
       ...(options.url ? { url: request.url } : {}),
     },
     message,
@@ -131,20 +133,21 @@ function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions,
 }
 
 function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, logger: Logger) {
-  const statusName = httpStatus[`${response.status}_NAME}`];
-  let message = `[Response]${options.method ? ` ${response.request.method}` : ''}${
-    options.url ? ` ${response.request.url}` : ''
-  }${options.status ? ` ${response.status}` : ''}${statusName ? ` ${statusName}` : ''}`;
+  const url = response.request?.url || response.request?.res?.responseUrl;
+  const statusName = httpStatus[`${response.status}_NAME`];
+  let message = `[Response]${options.method ? ` ${response.request?.method?.toUpperCase()}` : ''}${
+    options.url && url ? ` ${url}` : ''
+  }${options.status ? ` ${response.status}` : ''}${statusName ? `:${statusName}` : ''}`;
   if (typeof options.response === 'function') {
     message = options.response(response, options);
   }
   logger[options.responseLogLevel as 'verbose'](
     {
       ...(options.data ? { data: response.data } : {}),
-      ...(options.headers ? { headers: response.headers } : {}),
+      ...(options.headers ? { headers: formatHeaders(response.headers) } : {}),
       ...(options.method ? { method: response.request.method } : {}),
       ...(options.status ? { status: response.status } : {}),
-      ...(options.url ? { url: response.request.url } : {}),
+      ...(options.url && url ? { url } : {}),
     },
     message,
   );
@@ -157,14 +160,28 @@ function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logg
     errOrStr = options.error(errOrStr, options);
   }
   const error = typeof errOrStr === 'object' ? errOrStr : new AxiosError(errOrStr);
+  const url = error.request?.url || error.request?.res?.responseUrl;
   logger[options.errorLogLevel as 'error'](
     {
       ...(options.data ? { data: error?.response?.data } : {}),
-      ...(options.headers ? { headers: error?.response?.headers } : {}),
+      ...(options.headers ? { headers: formatHeaders(error?.response?.headers) } : {}),
       ...(options.method ? { method: error?.request?.method } : {}),
       ...(options.status ? { status: error?.response?.status } : {}),
+      ...(options.url && url ? { url } : {}),
     },
     error,
   );
   return err;
+}
+
+function formatHeaders(headers: any): Record<string, string> {
+  return Object.entries(headers).reduce((headers: Record<string, string>, [key, value]: [string, any]) => {
+    if (!value) return headers;
+    if (typeof value === 'object') {
+      headers = { ...headers, ...value };
+    } else {
+      headers[key] = value.toString();
+    }
+    return headers;
+  }, {});
 }
