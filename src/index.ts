@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 24-10-2022 06:32:03
+ * Last Modified: 04-11-2022 10:40:38
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -116,6 +116,7 @@ export class AxiosLoggerModule implements OnModuleInit {
 }
 
 function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions, logger: Logger) {
+  if ((request as any).silent) return request;
   let message = `[Request]${options.method ? ` ${request.method?.toUpperCase()}` : ''}${
     options.url ? ` ${request.url}` : ''
   }`;
@@ -136,6 +137,7 @@ function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions,
 }
 
 function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, logger: Logger) {
+  if ((response as any).silent) return response;
   const url = response.request?.url || response.request?.res?.responseUrl;
   const statusName = httpStatus[`${response.status}_NAME`];
   let message = `[Response]${options.method ? ` ${response.request?.method?.toUpperCase()}` : ''}${
@@ -159,6 +161,7 @@ function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, lo
 }
 
 function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logger: Logger) {
+  if ((err as any).silent) throw err;
   let errOrStr = err;
   if (options.error) {
     errOrStr = options.error(errOrStr, options);
@@ -176,7 +179,7 @@ function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logg
     },
     error,
   );
-  return err;
+  throw err;
 }
 
 function formatHeaders(headers: any, secretMask: string | boolean = false): Record<string, string> | undefined {
