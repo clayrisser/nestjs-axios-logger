@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 04-11-2022 10:40:38
+ * Last Modified: 04-11-2022 10:57:54
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -161,7 +161,7 @@ function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, lo
 }
 
 function errorLogger(err: AxiosError | string, options: AxiosLoggerOptions, logger: Logger) {
-  if ((err as any).silent) throw err;
+  if ((err as any)?.config?.silent) throw err;
   let errOrStr = err;
   if (options.error) {
     errOrStr = options.error(errOrStr, options);
