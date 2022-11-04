@@ -4,7 +4,7 @@
  * File Created: 17-07-2021 22:16:57
  * Author: Risser Labs LLC <info@risserlabs.com>
  * -----
- * Last Modified: 04-11-2022 10:57:54
+ * Last Modified: 04-11-2022 11:00:58
  * Modified By: Risser Labs LLC <info@risserlabs.com>
  * -----
  * Risser Labs LLC (c) Copyright 2021
@@ -137,7 +137,7 @@ function requestLogger(request: AxiosRequestConfig, options: AxiosLoggerOptions,
 }
 
 function responseLogger(response: AxiosResponse, options: AxiosLoggerOptions, logger: Logger) {
-  if ((response as any).silent) return response;
+  if ((response as any)?.config?.silent) return response;
   const url = response.request?.url || response.request?.res?.responseUrl;
   const statusName = httpStatus[`${response.status}_NAME`];
   let message = `[Response]${options.method ? ` ${response.request?.method?.toUpperCase()}` : ''}${
